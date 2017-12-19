@@ -156,37 +156,132 @@ Foam::cyclicAMIFvPatchField<Type>::patchNeighbourField() const
 
 //    return tpnf;
 
+//______________________________________________________________
+//    //me traigo los valores internos del campo
+//    //me traigo los nombres de todas las celdas de interes
+//    //pnf es cada celda con su field
+//    //creo tpnf que es el valor interpolado para la celda actual para actualizar result
+//    const Field<Type>& iField = this->primitiveField();
 
-  //__________________HECHO POR SANTIAGO_________
-    Info<<"patchNeighbourFIELD MODIFICADO"<<endl;
+//    const labelUList& nbrFaceCells =
+//            cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
 
+//    Field<Type> pnf(iField, nbrFaceCells);
+//    tmp<Field<Type>> tpnf(new Field<Type>(this->size()));
+
+//    Field<Type>& result = tpnf.ref();
+
+////    Type valor = result[0];
+////    typename outerProduct<vector, Type> myVector = vector(0,0,0) * valor;
+////    geometricField<typename outerProduct<vector, Type>::type> myVec;
+
+//    vectorField SURF = cyclicAMIPatch().neighbPatch().Sf();
+//    scalarField magSURF = cyclicAMIPatch().neighbPatch().magSf();
+
+//    //Depende el tipo hago distintos ponderados----------
+//    if(isType<scalarField>(pnf)){
+//        Info<<"pnf ES ESCALAR--------"<<endl;
+
+//        Type sumaPnf = sum(pnf)*0;
+//        sumaPnf = sum(magSURF * pnf);
+////        forAll(pnf, index){
+
+////            sumaPnf += pnf[index] * magSURF[index];
+////        }
+//        Info<<"sumaPnf:------------"<<sumaPnf<<endl;
+//        scalar totalArea = sum(magSURF);
+
+//        Info<<"totalArea: "<<totalArea<<endl;
+////      Info<<"DIVISION: sumaPnf/totalArea = "<<sumaPnf/totalArea<<endl;
+
+//        result = sumaPnf/totalArea;
+
+//    }
+//    if(isType<vectorField>(pnf)){
+//        Info<<"pnf ES VECTORIAL--------"<<endl;
+//        vector summ(0,0,0);// = vector::zero;
+//        //Redefino pnf
+
+
+//    //        vectorField=0;
+//    //        vectorField proyection = SURF ^ pnf; //Cross Product
+
+//    //        vectorField sumaPnf(0,0,0);// = sum(pnf)*0;
+//    ////        summ = sum(proyection * pnf);
+//    //        sumaPnf = sum(pnf);
+
+//        //Test cross product, result of it (-1 11 -7)
+//        vector S(1,2,3);
+//        vector T(4,1,1);
+//        vector R= S^T;
+//        Info<<"S:"<<S<<endl;
+//        Info<<"T:"<<T<<endl;
+//        Info<<"R:"<<R<<endl;
+//        Info<<"INFORMACION"<<endl;
+
+////        result = summ / sumaPnf;
+//    }
+//    if(isType<tensorField>(pnf)){
+//        Info<<"pnf es TENSORIAL--------"<<endl;
+//        Info<<"Estoy en un caso no soportado actualmente"<<endl;
+//    }
+
+//    return tpnf;
+//-------------------------------------------------------------------
+    //me traigo los valores internos del campo
+    //me traigo los nombres de todas las celdas de interes
+    //pnf es cada celda con su field
+    //creo tpnf que es el valor interpolado para la celda actual para actualizar result
     const Field<Type>& iField = this->primitiveField();
     const labelUList& nbrFaceCells =
-        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
+            cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
 
-
-    Field<Type> pnf(iField, nbrFaceCells);
 
     tmp<Field<Type>> tpnf(new Field<Type>(this->size()));
-    Field<Type>& result = tpnf.ref();
 
-    Type value = sum(pnf)/pnf.size();
-    Info<<"El valor de value es: "<< value <<endl;
 
-    forAll(result, faceI)
-    {
-        result[faceI] = value; //sum(pnf)/pnf.size();
+
+    vectorField SURF = cyclicAMIPatch().neighbPatch().Sf();
+    scalarField magSURF = cyclicAMIPatch().neighbPatch().magSf();
+
+    //Depende el tipo hago distintos ponderados----------
+//    if(isType<scalarField>(iField)){
+//        Info<<"pnf ES ESCALAR--------"<<endl;
+//        Field<Type> pnf(iField, nbrFaceCells);
+//        Type sumaPnf = sum(pnf)*0;
+//        sumaPnf = sum(magSURF * pnf);
+////        forAll(pnf, index){
+
+////            sumaPnf += pnf[index] * magSURF[index];
+////        }
+//        Info<<"sumaPnf:------------"<<sumaPnf<<endl;
+//        scalar totalArea = sum(magSURF);
+
+//        Info<<"totalArea: "<<totalArea<<endl;
+////      Info<<"DIVISION: sumaPnf/totalArea = "<<sumaPnf/totalArea<<endl;
+
+//        result = sumaPnf/totalArea;
+
+//    }
+    if(isType<vectorField>(iField)){
+
+        Info<<"pnf ES VECTORIAL--------"<<endl;
+        vectorField result = tpnf.ref();
+        vectorField pnf(iField, nbrFaceCells);
+        vectorField summ=sum(pnf)*0;//(0,0,0);// = vector::zero;
+        //Redefino pnf
+
+        scalarField proyection = SURF ^ pnf; //Cross Product
+
+        vector sumaPnf(0,0,0);// = sum(pnf)*0;
+        summ = sum(proyection * pnf);
+        sumaPnf = sum(pnf);
+
+        result = summ / sumaPnf;
     }
 
 
-
-
-
-
-
-    //tpnf = sum(pnf)/pnf.size();
     return tpnf;
-
 }
 
 

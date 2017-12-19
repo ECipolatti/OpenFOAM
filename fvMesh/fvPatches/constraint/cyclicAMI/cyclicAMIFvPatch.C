@@ -47,7 +47,6 @@ bool Foam::cyclicAMIFvPatch::coupled() const
 
 void Foam::cyclicAMIFvPatch::makeWeights(scalarField& w) const
 {
-    Info<<endl <<"Estoy en MakeWeights"<<endl;
 //    if (coupled())
 //    {
 //        const cyclicAMIFvPatch& nbrPatch = neighbFvPatch();
@@ -87,34 +86,7 @@ void Foam::cyclicAMIFvPatch::makeWeights(scalarField& w) const
 //    }
 //    Info<<endl <<"Salgo del MakeWeights"<<endl;
 
-    //__________________HECHO POR SANTIAGO_________
-
-//        const cyclicAMIFvPatch& nbrPatch = neighbFvPatch();
-//        const scalarField deltas(nf() & coupledFvPatch::delta());
-
-//        scalarField tnbrDeltas;
-//        //tnbrDeltas =
-//        //        interpolate(nbrPatch.nf() & nbrPatch.coupledFvPatch::delta());
-//        tnbrDeltas = nbrPatch.nf() & nbrPatch.coupledFvPatch::delta();
-
-//        scalar sum = 0;
-
-//        forAll(tnbrDeltas, facei)
-//        {
-//            sum += tnbrDeltas[facei];
-//        }
-//        scalar nbrDelta = sum/neighbFvPatch().size();
-
-
-//        //const scalarField& nbrDeltas = tnbrDeltas();
-//        forAll(deltas, facei)
-//        {
-//            scalar di = deltas[facei];
-//            //scalar dni = nbrDeltas[facei];
-
-//            w[facei] = nbrDelta/(di + nbrDelta);
-//        }
-    //---------------HECHO POR MI---------------------
+//--------------------------------------------------------------------
 
     const cyclicAMIFvPatch& nbrPatch = neighbFvPatch();
     const scalarField deltas(nf() & coupledFvPatch::delta());
@@ -125,11 +97,17 @@ void Foam::cyclicAMIFvPatch::makeWeights(scalarField& w) const
 
     scalar sum = 0;
 
+    scalarField nbrSf= nbrPatch.magSf();
+    scalar TotalArea = 0;
+            //BoundaryMesh.mesh().Sf();
     forAll(tnbrDeltas, facei)
     {
-        sum += tnbrDeltas[facei];
+
+        sum += tnbrDeltas[facei] * nbrSf[facei];
+        TotalArea +=  nbrSf[facei];
     }
-    scalar nbrDelta = sum/neighbFvPatch().size();
+
+    scalar nbrDelta = sum/TotalArea;
 
 
     //const scalarField& nbrDeltas = tnbrDeltas();
@@ -146,65 +124,65 @@ void Foam::cyclicAMIFvPatch::makeWeights(scalarField& w) const
 
 Foam::tmp<Foam::vectorField> Foam::cyclicAMIFvPatch::delta() const
 {
-    const cyclicAMIFvPatch& nbrPatch = neighbFvPatch();
+//    const cyclicAMIFvPatch& nbrPatch = neighbFvPatch();
 
-    if (coupled())
-    {
-        const vectorField patchD(coupledFvPatch::delta());
+//    if (coupled())
+//    {
+//        const vectorField patchD(coupledFvPatch::delta());
 
-        tmp<vectorField> tnbrPatchD;
-        if (applyLowWeightCorrection())
-        {
-            tnbrPatchD =
-                interpolate
-                (
-                    nbrPatch.coupledFvPatch::delta(),
-                    vectorField(this->size(), Zero)
-                );
-        }
-        else
-        {
-            tnbrPatchD = interpolate(nbrPatch.coupledFvPatch::delta());
-        }
+//        tmp<vectorField> tnbrPatchD;
+//        if (applyLowWeightCorrection())
+//        {
+//            tnbrPatchD =
+//                interpolate
+//                (
+//                    nbrPatch.coupledFvPatch::delta(),
+//                    vectorField(this->size(), Zero)
+//                );
+//        }
+//        else
+//        {
+//            tnbrPatchD = interpolate(nbrPatch.coupledFvPatch::delta());
+//        }
 
-        const vectorField& nbrPatchD = tnbrPatchD();
+//        const vectorField& nbrPatchD = tnbrPatchD();
 
-        tmp<vectorField> tpdv(new vectorField(patchD.size()));
-        vectorField& pdv = tpdv.ref();
+//        tmp<vectorField> tpdv(new vectorField(patchD.size()));
+//        vectorField& pdv = tpdv.ref();
 
-        // do the transformation if necessary
-        if (parallel())
-        {
-            forAll(patchD, facei)
-            {
-                const vector& ddi = patchD[facei];
-                const vector& dni = nbrPatchD[facei];
+//        // do the transformation if necessary
+//        if (parallel())
+//        {
+//            forAll(patchD, facei)
+//            {
+//                const vector& ddi = patchD[facei];
+//                const vector& dni = nbrPatchD[facei];
 
-                pdv[facei] = ddi - dni;
-            }
-        }
-        else
-        {
-            forAll(patchD, facei)
-            {
-                const vector& ddi = patchD[facei];
-                const vector& dni = nbrPatchD[facei];
+//                pdv[facei] = ddi - dni;
+//            }
+//        }
+//        else
+//        {
+//            forAll(patchD, facei)
+//            {
+//                const vector& ddi = patchD[facei];
+//                const vector& dni = nbrPatchD[facei];
 
-                pdv[facei] = ddi - transform(forwardT()[0], dni);
-            }
-        }
+//                pdv[facei] = ddi - transform(forwardT()[0], dni);
+//            }
+//        }
 
-        return tpdv;
-    }
-    else
-    {
-        return coupledFvPatch::delta();
-    }
+//        return tpdv;
+//    }
+//    else
+//    {
+//        return coupledFvPatch::delta();
+//    }
 
 
   //__________________HECHO POR SANTIAGO_________
 
-  //  return coupledFvPatch::delta();
+    return coupledFvPatch::delta();
 
 
 }

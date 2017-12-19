@@ -60,6 +60,7 @@ SourceFiles
 #include "coupledFvPatchField.H"
 #include "cyclicAMILduInterfaceField.H"
 #include "cyclicAMIFvPatch.H"
+#include "Vector.H"
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
