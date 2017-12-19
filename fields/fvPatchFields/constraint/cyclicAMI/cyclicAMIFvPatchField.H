@@ -180,6 +180,9 @@ public:
             //- Return reference to neighbour patchField
             const cyclicAMIFvPatchField<Type>& neighbourPatchField() const;
 
+            //- Return reference to neighbour patchField con scalarField
+//            const cyclicAMIFvPatchField<Type>& neighbourPatchField() const;
+
             //- Update result field based on interface functionality
             virtual void updateInterfaceMatrix
             (
