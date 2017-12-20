@@ -7,20 +7,16 @@
 -------------------------------------------------------------------------------
 License
     This file is part of OpenFOAM.
-
     OpenFOAM is free software: you can redistribute it and/or modify it
     under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-
     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
     for more details.
-
     You should have received a copy of the GNU General Public License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
-
 \*---------------------------------------------------------------------------*/
 
 // * * * * * * * * * * * * * * * * Constructors  * * * * * * * * * * * * * * //
@@ -128,6 +124,12 @@ bool Foam::cyclicAMIFvPatchField<Type>::coupled() const
     return cyclicAMIPatch_.coupled();
 }
 
+//template<class Type>
+//Foam::vectorField validVector(Foam::Field<Type> & pnf){
+//    if(Foam::isType<vectorField>(pnf)){
+//        return pnf;
+//    }
+//}
 
 template<class Type>
 Foam::tmp<Foam::Field<Type>>
@@ -150,7 +152,7 @@ Foam::cyclicAMIFvPatchField<Type>::patchNeighbourField() const
 //    }
 
 //    if (doTransform())
-//    {
+//    {isType
 //        tpnf.ref() = transform(forwardT(), tpnf());
 //    }
 
@@ -174,49 +176,53 @@ Foam::cyclicAMIFvPatchField<Type>::patchNeighbourField() const
     vectorField SURF = cyclicAMIPatch().neighbPatch().Sf();
     scalarField magSURF = cyclicAMIPatch().neighbPatch().magSf();
 
-    //Depende el tipo hago distintos ponderados----------
-
-    if(isType<scalarField>(pnf)){
-
-        Type sumaPnf = sum(pnf)*0;
-        sumaPnf = sum(magSURF * pnf);
-        //        forAll(pnf, index){
-        //            sumaPnf += pnf[index] * magSURF[index];
-        //        }
-        scalar totalArea = sum(magSURF);
-        result = sumaPnf/totalArea;
-    }
-//    if(isType<vectorField>(pnf)){
-//        Info<<"pnf ES VECTORIAL--------"<<endl;
-//        vector summ(0,0,0);// = vector::zero;
-//        //Redefino pnf
 
 
-//        //        vectorField=0;
-//        //        vectorField proyection = SURF ^ pnf; //Cross Product
-
-//        //        vectorField sumaPnf(0,0,0);// = sum(pnf)*0;
-//        ////        summ = sum(proyection * pnf);
-//        //        sumaPnf = sum(pnf);
-
-//        //Test cross product, result of it (-1 11 -7)
-//        vector S(1,2,3);
-//        vector T(4,1,1);
-//        vector R= S^T;
-//        Info<<"S:"<<S<<endl;
-//        Info<<"T:"<<T<<endl;
-//        Info<<"R:"<<R<<endl;
-//        Info<<"INFORMACION"<<endl;
-
-//        //        result = summ / sumaPnf;
-//    }
-    if(isType<tensorField>(pnf)){
-        Info<<"pnf es TENSORIAL--------"<<endl;
-        Info<<"Estoy en un caso no soportado actualmente"<<endl;
-    }
-
+    Type sumaPnf = sum(pnf)*0;
+    sumaPnf = sum(magSURF * pnf);
+    //        forAll(pnf, index){
+    //            sumaPnf += pnf[index] * magSURF[index];
+    //        }
+    scalar totalArea = sum(magSURF);
+    result = sumaPnf/totalArea;
     return tpnf;
 }
+//Quisimos dividir por tipo de  Fields.................
+//Depende el tipo hago distintos ponderados----------
+//    if(isType<scalarField>(pnf)){
+
+//        Type sumaPnf = sum(pnf)*0;
+//        sumaPnf = sum(magSURF * pnf);
+//        //        forAll(pnf, index){
+//        //            sumaPnf += pnf[index] * magSURF[index];
+//        //        }
+//        scalar totalArea = sum(magSURF);
+//        result = sumaPnf/totalArea;
+//    }
+//    if(isType<vectorField>(pnf)){
+////        Info<<"pnf ES VECTORIAL--------"<<endl;
+//        vector sumSURF = sum(SURF);
+//        vector summ(0,0,0);
+
+
+//        Type ssumaPnf = sum(pnf)*0;
+//        ssumaPnf = sumSURF;
+
+//        //Field<Type> proyection = sumSURF & pnf;
+
+////        vectorField sumaPnf(0,0,0);// = sum(pnf)*0;
+////        summ = sum(proyection * pnf);
+////        sumaPnf = sum(pnf);
+
+////        result = summ / sumaPnf;
+//    }
+//    if(isType<tensorField>(pnf)){
+//        Info<<"pnf es TENSORIAL--------"<<endl;
+//        Info<<"Estoy en un caso no soportado actualmente"<<endl;
+//    }
+
+//    return tpnf;
+//}
 ////-------------------------------------------------------------------
 //    //me traigo los valores internos del campo
 //    //me traigo los nombres de todas las celdas de interes
@@ -330,56 +336,60 @@ void Foam::cyclicAMIFvPatchField<Type>::updateInterfaceMatrix
 ) const
 {
 
-    const labelUList& nbrFaceCells =
-        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
-
-    scalarField pnf(psiInternal, nbrFaceCells);
-
-    // Transform according to the transformation tensors
-    transformCoupleField(pnf, cmpt);
-
-    if (cyclicAMIPatch_.applyLowWeightCorrection())
-    {
-        scalarField pif(psiInternal, cyclicAMIPatch_.faceCells());
-        pnf = cyclicAMIPatch_.interpolate(pnf, pif);
-    }
-    else
-    {
-        pnf = cyclicAMIPatch_.interpolate(pnf);
-    }
-
-    // Multiply the field by coefficients and add into the result
-    const labelUList& faceCells = cyclicAMIPatch_.faceCells();
-
-    forAll(faceCells, elemI)
-    {
-        result[faceCells[elemI]] -= coeffs[elemI]*pnf[elemI];
-    }
-
-
-
-       //__________________HECHO POR SANTIAGO_________
-
 //    const labelUList& nbrFaceCells =
 //        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
 
 //    scalarField pnf(psiInternal, nbrFaceCells);
 
 //    // Transform according to the transformation tensors
-//    //transformCoupleField(pnf, cmpt);
+//    transformCoupleField(pnf, cmpt);
 
-//    //pnf = cyclicAMIPatch_.interpolate(pnf);
+//    if (cyclicAMIPatch_.applyLowWeightCorrection())
+//    {
+//        scalarField pif(psiInternal, cyclicAMIPatch_.faceCells());
+//        pnf = cyclicAMIPatch_.interpolate(pnf, pif);
+//    }
+//    else
+//    {
+//        pnf = cyclicAMIPatch_.interpolate(pnf);
+//    }
 
 //    // Multiply the field by coefficients and add into the result
 //    const labelUList& faceCells = cyclicAMIPatch_.faceCells();
 
-//    scalarField tpnf(faceCells.size(),sum(pnf)/pnf.size());
-
-
 //    forAll(faceCells, elemI)
 //    {
-//        result[faceCells[elemI]] -= coeffs[elemI]*tpnf[elemI];
+//        result[faceCells[elemI]] -= coeffs[elemI]*pnf[elemI];
 //    }
+
+
+//_________________________________________
+
+    const labelUList& nbrFaceCells =
+        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
+
+    scalarField pnf(psiInternal, nbrFaceCells);
+
+    // Transform according to the transformation tensors
+    //transformCoupleField(pnf, cmpt);
+
+    //pnf = cyclicAMIPatch_.interpolate(pnf);
+
+    // Multiply the field by coefficients and add into the result
+    const labelUList& faceCells = cyclicAMIPatch_.faceCells();
+
+    scalarField magSURF = cyclicAMIPatch().neighbPatch().magSf();
+    scalar sumaPnf = sum(pnf)*0;
+    sumaPnf = sum(magSURF * pnf);
+    scalar totalArea = sum(magSURF);
+//    scalarField pesos = sumaPnf/totalArea;
+
+//    scalarField tpnf(faceCells.size(),sum(pnf)/pnf.size());
+
+    forAll(faceCells, elemI)
+    {
+        result[faceCells[elemI]] -= coeffs[elemI] * sumaPnf/totalArea;
+    }
 }
 
 
@@ -393,52 +403,58 @@ void Foam::cyclicAMIFvPatchField<Type>::updateInterfaceMatrix
 ) const
 {
 
-    const labelUList& nbrFaceCells =
-        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
-
-    Field<Type> pnf(psiInternal, nbrFaceCells);
-
-    // Transform according to the transformation tensors
-    transformCoupleField(pnf);
-
-    if (cyclicAMIPatch_.applyLowWeightCorrection())
-    {
-        Field<Type> pif(psiInternal, cyclicAMIPatch_.faceCells());
-        pnf = cyclicAMIPatch_.interpolate(pnf, pif);
-    }
-    else
-    {
-        pnf = cyclicAMIPatch_.interpolate(pnf);
-    }
-
-    // Multiply the field by coefficients and add into the result
-    const labelUList& faceCells = cyclicAMIPatch_.faceCells();
-
-    forAll(faceCells, elemI)
-    {
-        result[faceCells[elemI]] -= coeffs[elemI]*pnf[elemI];
-    }
-
-
-  //__________________HECHO POR SANTIAGO_________
-
 //    const labelUList& nbrFaceCells =
 //        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
 
 //    Field<Type> pnf(psiInternal, nbrFaceCells);
-//    //pnf se tiene que "transformar" de neighb a owner (3-->1 o vv).
-//    //pnf = cyclicAMIPatch_.interpolate(pnf);
+
+//    // Transform according to the transformation tensors
+//    transformCoupleField(pnf);
+
+//    if (cyclicAMIPatch_.applyLowWeightCorrection())
+//    {
+//        Field<Type> pif(psiInternal, cyclicAMIPatch_.faceCells());
+//        pnf = cyclicAMIPatch_.interpolate(pnf, pif);
+//    }
+//    else
+//    {
+//        pnf = cyclicAMIPatch_.interpolate(pnf);
+//    }
 
 //    // Multiply the field by coefficients and add into the result
 //    const labelUList& faceCells = cyclicAMIPatch_.faceCells();
 
-//    Field<Type>tpnf(faceCells.size(),sum(pnf)/pnf.size());
-
 //    forAll(faceCells, elemI)
 //    {
-//        result[faceCells[elemI]] -= coeffs[elemI]*tpnf[elemI];
+//        result[faceCells[elemI]] -= coeffs[elemI]*pnf[elemI];
 //    }
 
+
+//____________________________________________________________________
+
+    const labelUList& nbrFaceCells =
+        cyclicAMIPatch_.cyclicAMIPatch().neighbPatch().faceCells();
+
+    Field<Type> pnf(psiInternal, nbrFaceCells);
+    //pnf se tiene que "transformar" de neighb a owner (3-->1 o vv).
+    //pnf = cyclicAMIPatch_.interpolate(pnf);
+
+    // Multiply the field by coefficients and add into the result
+    const labelUList& faceCells = cyclicAMIPatch_.faceCells();
+
+//    Field<Type>tpnf(faceCells.size(),sum(pnf)/pnf.size());
+
+    scalarField magSURF = cyclicAMIPatch().neighbPatch().magSf();
+    Type sumaPnf = sum(pnf)*0;
+    sumaPnf = sum(magSURF * pnf);
+    scalar totalArea = sum(magSURF);
+//    vectorField pesos = sumaPnf/totalArea;
+
+
+    forAll(faceCells, elemI)
+    {
+        result[faceCells[elemI]] -= coeffs[elemI]*sumaPnf/totalArea;
+    }
 
 }
 

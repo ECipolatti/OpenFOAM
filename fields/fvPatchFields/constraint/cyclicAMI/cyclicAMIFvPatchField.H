@@ -235,6 +235,9 @@ public:
 
             //- Write
             virtual void write(Ostream& os) const;
+
+            //FUNCION para valid si es vectorField
+//            vectorField validVector(Field<Type> & pnf);
 };
 
 
